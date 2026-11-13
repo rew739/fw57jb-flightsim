@@ -1,5 +1,8 @@
 # FW57J-B Flight Simulator — เกมจำลองการบินโลกเปิด (รุ่น 4 · 13 พ.ย. 2026 · โมเดลเครื่องจาก SolidWorks + แผนที่จริงเชียงใหม่ + บินตามจุด/กลับฐาน)
 
+**Play online:** https://rew739.github.io/fw57jb-flightsim/ · repo: https://github.com/rew739/fw57jb-flightsim (public, GitHub Pages from branch `main`; after local changes run `git add -A && git commit && git push` in this folder)
+
+
 เกมจำลองการบินของเครื่อง FW57J-B ที่ใช้ตัวเลขจาก **spec v49** โดยตรง เล่นในเบราว์เซอร์ ไม่ต้องติดตั้งโปรแกรมเพิ่ม
 ลำดับใช้งานเหมือนของจริง: วางแผนภารกิจบนแผนที่ → สตาร์ตเครื่อง → เร่งเต็มบนราง → ปล่อยจากรางลมอัด L6 → บินตามจุดอัตโนมัติ (หรือบังคับเอง) → กลับฐานวนรอ → กางร่มลงจอด
 
