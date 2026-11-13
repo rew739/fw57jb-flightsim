@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FW57J-B Flight Simulator</title>
+<script type="importmap">{ "imports": { "three": "./vendor/three.module.min.js" } }</script>
+<style>
+  :root { --bg: rgba(12,20,28,0.86); --line: rgba(255,255,255,0.14); --text: #eaf2f7; --dim: #9fb3c2; --accent: #f07a1a; --ok: #6fe3a1; --warn: #ffc857; --bad: #ff6b5e; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #0b1218; color: var(--text); font-family: "Leelawadee UI", "Noto Sans Thai", "Segoe UI", sans-serif; }
+  #view, #hud { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+  canvas { display: block; }
+  #hud { cursor: grab; }
+  .hide { display: none !important; }
+  .overlay { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; padding: 16px; }
+  #menu { justify-content: flex-start; background: linear-gradient(90deg, rgba(8,14,20,0.82) 0, rgba(8,14,20,0.55) 520px, rgba(8,14,20,0) 820px); }
+  .card { background: var(--bg); border: 1px solid var(--line); border-radius: 14px; padding: 22px 24px; width: min(480px, 100%); max-height: calc(100vh - 32px); overflow: auto; backdrop-filter: blur(6px); }
+  #menu .card { margin-left: clamp(0px, 4vw, 56px); }
+  h1 { font-size: 26px; margin: 0 0 2px; letter-spacing: 0.3px; }
+  h1 small { display: block; font-size: 13px; color: var(--dim); font-weight: 400; margin-top: 4px; }
+  h2 { font-size: 15px; color: var(--dim); font-weight: 600; margin: 18px 0 8px; text-transform: none; }
+  .row { display: grid; grid-template-columns: 118px 1fr 64px; align-items: center; gap: 10px; margin: 7px 0; font-size: 14px; }
+  .row output, .row span.v { text-align: right; font-variant-numeric: tabular-nums; color: #fff; }
+  input[type=range] { width: 100%; accent-color: var(--accent); }
+  select { background: #17232d; color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 5px 6px; font: inherit; grid-column: 2 / 4; }
+  label.chk { display: flex; gap: 8px; align-items: center; font-size: 14px; margin: 6px 0; cursor: pointer; }
+  .info { border-top: 1px solid var(--line); margin-top: 14px; padding-top: 10px; font-size: 13.5px; }
+  .info div { display: flex; justify-content: space-between; gap: 12px; padding: 3px 0; }
+  .info b { color: var(--dim); font-weight: 500; white-space: nowrap; }
+  .info span { text-align: right; font-variant-numeric: tabular-nums; }
+  .info small { color: var(--dim); }
+  .bad { color: var(--bad) !important; } .ok { color: var(--ok) !important; } .warn { color: var(--warn) !important; }
+  button { font: inherit; font-weight: 600; border: 0; border-radius: 9px; padding: 11px 18px; cursor: pointer; background: var(--accent); color: #1a0d02; }
+  button.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); }
+  button:hover { filter: brightness(1.1); }
+  button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+  .btns { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+  .keys { display: grid; grid-template-columns: auto 1fr; gap: 5px 14px; font-size: 13.5px; }
+  kbd { background: #22313d; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px; padding: 1px 6px; font: 12px ui-monospace, Consolas, monospace; white-space: nowrap; }
+  .note { font-size: 12.5px; color: var(--dim); margin-top: 12px; line-height: 1.5; }
+  #loading { font-size: 16px; color: var(--dim); }
+  #help, #report { background: rgba(4,8,12,0.55); }
+  #repTitle { font-size: 22px; margin: 0 0 6px; }
+  /* หน้าวางแผนภารกิจ */
+  .plan { display: grid; grid-template-columns: minmax(0, 1fr) 340px; width: min(1320px, 100%); height: calc(100vh - 32px); background: var(--bg); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; backdrop-filter: blur(6px); }
+  .planMap { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+  #planMap { flex: 1; min-height: 0; width: 100%; cursor: crosshair; touch-action: none; }
+  #planProf { flex: none; height: 118px; width: 100%; border-top: 1px solid var(--line); }
+  .planSide { padding: 18px 18px; overflow: auto; border-left: 1px solid var(--line); }
+  .planSide .row { grid-template-columns: 104px 1fr 70px; }
+  .wp { display: grid; grid-template-columns: 22px 1fr 30px; gap: 2px 8px; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+  .wp b { grid-row: span 2; width: 22px; height: 22px; border-radius: 50%; border: 2px solid #ffc04a; display: grid; place-items: center; font-size: 12px; color: #fff; }
+  .wp input { width: 70px; padding: 3px 6px; background: rgba(255,255,255,0.08); color: #fff; border: 1px solid var(--line); border-radius: 6px; font: inherit; }
+  .wp span { grid-column: 2; font-size: 12px; color: var(--dim); font-variant-numeric: tabular-nums; }
+  .wp button { grid-row: 1 / span 2; grid-column: 3; padding: 4px 0; }
+  .wp .bad, .planSide .bad { color: #ff7a6b; }
+  @media (max-width: 760px) { .plan { grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr) 46%; } .planSide { border-left: 0; border-top: 1px solid var(--line); } #planProf { height: 84px; } }
+</style>
+</head>
+<body>
+<canvas id="view"></canvas>
+<canvas id="hud"></canvas>
+
+<div id="loading" class="overlay">กำลังสร้างภูมิประเทศ…</div>
+
+<div id="menu" class="overlay hide">
+  <div class="card">
+    <h1>FW57J-B Flight Simulator<small>เครื่องบินปีกบินไอพ่น — ฟิสิกส์จาก spec v49 · ออกรางลมอัด · ลงด้วยร่ม</small></h1>
+    <h2>แผนที่</h2>
+    <div class="row"><label for="map">พื้นที่บิน</label><select id="map"><option value="">โลกสร้างอัตโนมัติ (ชายฝั่ง–เทือกเขา)</option></select></div>
+    <p class="note" id="mapNote"></p>
+    <h2>บรรทุกและน้ำมัน</h2>
+    <div class="row"><label for="cargo">สัมภาระ</label><input id="cargo" type="range" min="0" max="20" step="1" value="10"><span class="v" id="cargoV"></span></div>
+    <div class="row"><label for="fuel">น้ำมัน</label><input id="fuel" type="range" min="10" max="100" step="5" value="100"><span class="v" id="fuelV"></span></div>
+    <h2>อากาศ</h2>
+    <div class="row"><label for="wind">ความเร็วลม</label><input id="wind" type="range" min="0" max="12" step="1" value="3"><span class="v" id="windV"></span></div>
+    <div class="row"><label for="windDir">ลมมาจากทิศ</label><input id="windDir" type="range" min="0" max="350" step="10" value="40"><span class="v" id="windDirV"></span></div>
+    <div class="row"><label for="turb">ความปั่นป่วน</label>
+      <select id="turb"><option value="0">นิ่ง</option><option value="0.5" selected>เบา</option><option value="1.2">ปานกลาง</option><option value="2.5">แรง</option></select></div>
+    <label class="chk"><input id="quick" type="checkbox" checked> สตาร์ตเครื่องแบบเร็ว (3 วินาที แทน 20 วินาที)</label>
+    <label class="chk"><input id="airStart" type="checkbox"> เริ่มกลางอากาศ (สูงจากลานปล่อย 400 m · 200 km/h · โหมด CRUISE)</label>
+    <label class="chk"><input id="autoMission" type="checkbox" checked> เข้าโหมด AUTO เองเมื่อพ้นราง (ถ้าวางจุดบินไว้)</label>
+    <div class="info" id="info"></div>
+    <div class="btns"><button id="start">ขึ้นรางปล่อย</button><button id="plan" class="ghost">วางแผนภารกิจ</button></div>
+    <p class="note">รางหันสู้ลมให้อัตโนมัติ · เครื่องไม่มีล้อ ต้องกางร่มลงจอด · กด <kbd>Esc</kbd> ระหว่างเล่นเพื่อดูปุ่มทั้งหมด</p>
+  </div>
+</div>
+
+<div id="help" class="overlay hide">
+  <div class="card">
+    <h1>หยุดชั่วคราว</h1>
+    <h2>ปุ่มบังคับ</h2>
+    <div class="keys">
+      <span><kbd>S</kbd> / <kbd>↓</kbd></span><span>ดึงคันบังคับ (เงยหัว)</span>
+      <span><kbd>W</kbd> / <kbd>↑</kbd></span><span>ดันคันบังคับ (ก้มหัว)</span>
+      <span><kbd>A</kbd> <kbd>D</kbd> / <kbd>←</kbd> <kbd>→</kbd></span><span>เอียงซ้าย / ขวา</span>
+      <span><kbd>X</kbd> / <kbd>Z</kbd></span><span>เพิ่ม / ลดคันเร่ง (โหมด CRUISE = ความเร็วเป้า)</span>
+      <span><kbd>F</kbd> / <kbd>G</kbd></span><span>คันเร่งเต็ม / เดินเบา</span>
+      <span><kbd>E</kbd></span><span>สตาร์ตเครื่อง · <kbd>Shift</kbd>+<kbd>E</kbd> ดับเครื่อง</span>
+      <span><kbd>Space</kbd></span><span>ปล่อยจากราง</span>
+      <span><kbd>P</kbd> <kbd>P</kbd></span><span>กางร่ม (กดสองครั้ง) — ควรช้ากว่า 110 km/h</span>
+      <span><kbd>M</kbd> หรือ <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd></span><span>โหมด MANUAL / FBWA / CRUISE</span>
+      <span><kbd>4</kbd> · <kbd>5</kbd> หรือ <kbd>H</kbd></span><span>AUTO บินตามจุด · RTL กลับฐานแล้ววนรอ</span>
+      <span><kbd>B</kbd></span><span>เปิดแผนที่วางแผนภารกิจ (แก้จุดระหว่างบินได้)</span>
+      <span><kbd>[</kbd> <kbd>]</kbd></span><span>trim ก้มเงย (โหมด MANUAL)</span>
+      <span><kbd>C</kbd> · เมาส์ลาก · ล้อ</span><span>เปลี่ยนกล้อง · หมุน · ระยะ (ซูมใกล้ได้ถึง 1.6 m)</span>
+      <span><kbd>V</kbd></span><span>มุมมองโปร่ง — เห็นโครง ถัง เครื่องยนต์ข้างใน (โมเดลจาก SolidWorks)</span>
+      <span><kbd>T</kbd></span><span>เร่งเวลา ×1 / ×2 / ×4</span>
+      <span><kbd>L</kbd></span><span>บันทึกข้อมูลการบินเป็น CSV</span>
+      <span><kbd>N</kbd> · <kbd>R</kbd></span><span>เปิด/ปิดเสียง · เริ่มใหม่</span>
+    </div>
+    <p class="note"><b>FBWA</b> ปล่อยมือ = ปีกระดับ บินระดับโดยประมาณ มีกันร่วงหล่นและจำกัด 3 g<br><b>CRUISE</b> รักษาความสูง ทิศ ความเร็วให้เอง — โยกคันบังคับเพื่อเลื่อนค่าเป้า<br><b>MANUAL</b> คุม elevon ตรง ๆ ไม่มีตัวช่วย<br><b>AUTO</b> บินตามจุดที่วางไว้ตามลำดับ จบแล้วเข้า RTL เอง · <b>RTL</b> กลับมาวนเหนือลานปล่อยที่ +150 m รอกางร่ม</p>
+    <div class="btns"><button id="resume">เล่นต่อ</button><button id="planHelp" class="ghost">แผนภารกิจ</button><button id="quit" class="ghost">กลับเมนู</button></div>
+  </div>
+</div>
+
+<div id="report" class="overlay hide">
+  <div class="card">
+    <h1 id="repTitle"></h1>
+    <div class="info" id="repBody"></div>
+    <div class="btns"><button id="again">บินอีกครั้ง</button><button id="toMenu" class="ghost">กลับเมนู</button><button id="csv" class="ghost">บันทึก CSV</button></div>
+  </div>
+</div>
+<div id="planner" class="overlay hide">
+  <div class="plan">
+    <div class="planMap"><canvas id="planMap"></canvas><canvas id="planProf"></canvas></div>
+    <div class="planSide">
+      <h1>วางแผนภารกิจ</h1>
+      <p class="note" style="margin-top:0">คลิกบนแผนที่ = เพิ่มจุด · ลากจุด = ย้าย · คลิกขวาที่จุด = ลบ<br>ลากพื้น = เลื่อนแผนที่ · ล้อเมาส์ = ซูม</p>
+      <div class="row"><label for="planSpd">ความเร็วภารกิจ</label><input id="planSpd" type="range" min="110" max="300" step="10" value="200"><span class="v" id="planSpdV"></span></div>
+      <div id="planList"></div>
+      <div class="info" id="planInfo"></div>
+      <div class="btns"><button id="planClose">เสร็จ</button><button id="planFit" class="ghost">ดูทั้งเส้นทาง</button><button id="planClear" class="ghost">ลบทุกจุด</button></div>
+      <p class="note">เส้นสีแดง = ช่วงที่พ้นพื้นน้อยกว่า 60 m · เส้นประ = ขากลับฐานของโหมด RTL · จบจุดสุดท้ายเครื่องจะกลับฐานเอง แล้ววนรอให้กางร่ม</p>
+    </div>
+  </div>
+</div>
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>

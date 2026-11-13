@@ -1,0 +1,63 @@
+{
+ "id": "chiangmai",
+ "name": "เชียงใหม่ (แผนที่จริง)",
+ "lat0": 18.685,
+ "lon0": 99.088,
+ "m_per_deg_lat": 110688.32209297577,
+ "m_per_deg_lon": 105488.52498079014,
+ "grid": {
+  "n": 3073,
+  "step": 64,
+  "half": 98304,
+  "scale": 0.1
+ },
+ "site_alt": 296.5,
+ "site_flat_m": [
+  450,
+  2200
+ ],
+ "elev_max": 2571.0,
+ "elev_min": 92.5,
+ "elev_despiked": 211,
+ "img": {
+  "root": 16384,
+  "px": 256,
+  "path": "img",
+  "levels": [
+   {
+    "L": 0,
+    "x0": -6,
+    "x1": 5,
+    "z0": -6,
+    "z1": 5
+   },
+   {
+    "L": 1,
+    "x0": -12,
+    "x1": 11,
+    "z0": -12,
+    "z1": 11
+   },
+   {
+    "L": 2,
+    "x0": -24,
+    "x1": 23,
+    "z0": -24,
+    "z1": 23
+   },
+   {
+    "L": 3,
+    "x0": -16,
+    "x1": 15,
+    "z0": -16,
+    "z1": 15
+   }
+  ]
+ },
+ "attribution": [
+  "ความสูง: Mapzen Terrain Tiles (AWS Open Data) — ข้อมูล SRTM ของ NASA/USGS และแหล่งอื่น",
+  "ภาพ: Sentinel-2 cloudless 2023 — https://s2maps.eu โดย EOX IT Services GmbH (มีข้อมูล Copernicus Sentinel ที่ดัดแปลงแล้ว ปี 2023) · CC BY-NC-SA 4.0"
+ ],
+ "built": "2026-11-12",
+ "forest": "forest.bin"
+}
